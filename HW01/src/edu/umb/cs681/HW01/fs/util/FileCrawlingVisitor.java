@@ -22,7 +22,7 @@ public class FileCrawlingVisitor implements FSVisitor {
     }
 
     public void visit(File file) {
-        files = Stream.concat(files, Stream.of(file)); // Add each file to the stream
+        files = Stream.concat(files, Stream.of(file));
     }
 
     public Stream<File> files() {

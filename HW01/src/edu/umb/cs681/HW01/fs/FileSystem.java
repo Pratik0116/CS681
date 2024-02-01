@@ -44,5 +44,4 @@ public class FileSystem {
                 .collect(Collectors.groupingBy(File::getExtension,
                         Collectors.summarizingInt(File::getSize)));
     }
-
 }
