@@ -4,7 +4,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Aircraft {
 
-    private volatile Position position; // Shared (non-final) variable
+    private volatile Position position;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     public Aircraft(Position pos) {
