@@ -7,13 +7,11 @@ public class Main {
             System.out.println("Instance obtained: " + fs);
         };
 
-        Thread[] threads = new Thread[5]; // Create an array of threads
+        Thread[] threads = new Thread[5];
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new Thread(getInstanceTask); // Assign the same task to each thread
-            threads[i].start(); // Start each thread
+            threads[i] = new Thread(getInstanceTask);
+            threads[i].start();
         }
-
-        // Wait for all threads to finish
         for (Thread thread : threads) {
             try {
                 thread.join();

@@ -1,18 +1,23 @@
 package edu.umb.cs681.HW07;
 
 import java.util.LinkedList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class FileSystem {
     private LinkedList<Directory> rootDirectories = new LinkedList<Directory>();
     private static FileSystem fileSystem = null;
-    private static final Object lock = new Object(); // Define a lock object
+    private static final Lock lock = new ReentrantLock();
 
     public static FileSystem getFileSystem() {
-        synchronized (lock) { // Use synchronized block to ensure thread safety
+        lock.lock();
+        try{
             if (fileSystem == null)
                 fileSystem = new FileSystem();
+            return fileSystem;
+        }finally {
+            lock.unlock();
         }
-        return fileSystem;
     }
 
     public LinkedList<Directory> getRootDirectories() {
