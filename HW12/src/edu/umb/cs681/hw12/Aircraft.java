@@ -1,31 +1,22 @@
 package edu.umb.cs681.hw12;
 
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Aircraft {
 
-    private volatile Position position;
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final AtomicReference<Position> position;
 
     public Aircraft(Position pos) {
-        this.position = pos;
+        this.position = new AtomicReference<>(pos);
     }
 
     public void setPosition(double newLat, double newLong, double newAlt) {
-        lock.writeLock().lock();
-        try {
-            this.position = this.position.change(newLat, newLong, newAlt);
-        } finally {
-            lock.writeLock().unlock();
-        }
+        Position currentPos = this.position.get();
+        Position newPos = currentPos.change(newLat, newLong, newAlt);
+        this.position.set(newPos);
     }
 
     public Position getPosition() {
-        lock.readLock().lock();
-        try {
-            return position;
-        } finally {
-            lock.readLock().unlock();
-        }
+        return this.position.get();
     }
 }

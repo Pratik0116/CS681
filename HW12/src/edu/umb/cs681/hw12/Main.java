@@ -1,15 +1,24 @@
 package edu.umb.cs681.hw12;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class Main {
+
     public static void main(String[] args) {
-        Aircraft aircraft = new Aircraft(new Position(40.7128, -74.0060, 10.0)); // Initial position
+        Aircraft aircraft = new Aircraft(new Position(42.3601, -71.0589, 5000.0));
 
-        Thread thread1 = new Thread(new AircraftRunnable(aircraft, 42.3601, -71.0589, 20.0));
-        Thread thread2 = new Thread(new AircraftRunnable(aircraft, 34.0522, -118.2437, 15.0));
-        Thread thread3 = new Thread(new AircraftRunnable(aircraft, 37.7749, -122.4194, 18.0));
+        ExecutorService executor = Executors.newFixedThreadPool(3);
 
-        thread1.start();
-        thread2.start();
-        thread3.start();
+        for (int i = 0; i < 3; i++) {
+            double newLat = 42.3601 + i;
+            double newLong = -71.0589 + i;
+            double newAlt = 5000.0 + i * 1000;
+            executor.submit(() -> {
+                aircraft.setPosition(newLat, newLong, newAlt);
+                System.out.println(Thread.currentThread().getName() + " New Position = " + aircraft.getPosition());
+            });
+        }
+        executor.shutdown();
     }
 }

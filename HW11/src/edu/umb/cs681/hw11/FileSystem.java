@@ -1,22 +1,24 @@
 package edu.umb.cs681.hw11;
 
 import java.util.LinkedList;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class FileSystem {
     private LinkedList<Directory> rootDirectories = new LinkedList<Directory>();
-    private static FileSystem fileSystem = null;
-    private static final Lock lock = new ReentrantLock();
+    private static AtomicReference<FileSystem> fileSystem = new AtomicReference<>(null);
+
+    private FileSystem() {}
 
     public static FileSystem getFileSystem() {
-        lock.lock();
-        try{
-            if (fileSystem == null)
-                fileSystem = new FileSystem();
-            return fileSystem;
-        }finally {
-            lock.unlock();
+        if (fileSystem.get() == null) {
+            FileSystem fs = new FileSystem();
+            if (fileSystem.compareAndSet(null, fs)) {
+                return fs;
+            } else {
+                return fileSystem.get();
+            }
+        } else {
+            return fileSystem.get();
         }
     }
 
