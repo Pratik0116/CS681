@@ -8,7 +8,7 @@ public class ThreadSafeBankAccount2 implements BankAccount {
 	private ReentrantLock lock = new ReentrantLock();
 	private Condition sufficientFundsCondition = lock.newCondition();
 	private Condition belowUpperLimitFundsCondition = lock.newCondition();
-	private boolean done = false;
+	private volatile boolean done = false;
 
 	public void setDone() {
 		lock.lock();
@@ -22,35 +22,30 @@ public class ThreadSafeBankAccount2 implements BankAccount {
 	}
 
 	public boolean isDone() {
-		lock.lock();
-		try {
-			return done;
-		} finally {
-			lock.unlock();
-		}
+		return done;
 	}
 
 	public void deposit(double amount) {
 		lock.lock();
 		try {
-			if (done) return; // Check if termination flag is set
+			if (done) return;
 
 			System.out.println("Lock obtained");
 			System.out.println(Thread.currentThread().getId() +
 					" (deposit): current balance: " + balance);
-			while (balance >= 300 && !done) { // Check termination flag before waiting
+			while (balance >= 300 && !done) {
 				System.out.println(Thread.currentThread().getId() +
 						" (deposit): await(): Balance exceeds the upper limit.");
 				belowUpperLimitFundsCondition.await();
 			}
-			if (!done) { // Check termination flag before updating balance
+			if (!done) {
 				balance += amount;
 				System.out.println(Thread.currentThread().getId() +
 						" (deposit): new balance: " + balance);
 				sufficientFundsCondition.signalAll();
 			}
 		} catch (InterruptedException exception) {
-			exception.printStackTrace();
+			Thread.currentThread().interrupt();
 		} finally {
 			lock.unlock();
 			System.out.println("Lock released");
@@ -60,24 +55,24 @@ public class ThreadSafeBankAccount2 implements BankAccount {
 	public void withdraw(double amount) {
 		lock.lock();
 		try {
-			if (done) return; // Check if termination flag is set
+			if (done) return;
 
 			System.out.println("Lock obtained");
 			System.out.println(Thread.currentThread().getId() +
 					" (withdraw): current balance: " + balance);
-			while (balance <= 0 && !done) { // Check termination flag before waiting
+			while (balance <= 0 && !done) {
 				System.out.println(Thread.currentThread().getId() +
 						" (withdraw): await(): Insufficient funds");
 				sufficientFundsCondition.await();
 			}
-			if (!done) { // Check termination flag before updating balance
+			if (!done) {
 				balance -= amount;
 				System.out.println(Thread.currentThread().getId() +
 						" (withdraw): new balance: " + balance);
 				belowUpperLimitFundsCondition.signalAll();
 			}
 		} catch (InterruptedException exception) {
-			exception.printStackTrace();
+			Thread.currentThread().interrupt();
 		} finally {
 			lock.unlock();
 			System.out.println("Lock released");

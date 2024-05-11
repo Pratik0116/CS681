@@ -8,13 +8,15 @@ public class DepositRunnable implements Runnable {
     }
 
     public void run() {
-        while (!bankAccount.isDone()) {
-            bankAccount.deposit(100);
-            try {
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                bankAccount.deposit(100);
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                break;
             }
+        } catch (InterruptedException e) {
+            System.out.println(Thread.currentThread().getId() + " (deposit): Interrupted");
+        } finally {
+            System.out.println(Thread.currentThread().getId() + " (deposit): Terminating");
         }
     }
 }

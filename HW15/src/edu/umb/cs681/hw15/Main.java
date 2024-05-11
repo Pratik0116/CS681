@@ -1,7 +1,6 @@
 package edu.umb.cs681.hw15;
 
 public class Main {
-
     public static void main(String[] args) {
         ThreadSafeBankAccount2 bankAccount = new ThreadSafeBankAccount2();
 
@@ -20,22 +19,16 @@ public class Main {
         depositThread2.start();
 
         try {
-            Thread.sleep(5000); // Let threads run for 5 seconds
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        bankAccount.setDone(); // Set termination flag
+        withdrawThread1.interrupt();
+        withdrawThread2.interrupt();
+        depositThread1.interrupt();
+        depositThread2.interrupt();
 
-        try {
-            withdrawThread1.join();
-            withdrawThread2.join();
-            depositThread1.join();
-            depositThread2.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("All threads terminated.");
+        bankAccount.setDone();
     }
 }

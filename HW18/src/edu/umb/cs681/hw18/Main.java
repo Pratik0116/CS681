@@ -1,37 +1,41 @@
 package edu.umb.cs681.hw18;
 
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class Main {
     public static void main(String[] args) {
-        StockQuoteObservable stockObservable = new StockQuoteObservable();
+        StockQuoteObservable observable = new StockQuoteObservable();
 
-        // Create 10+ data handler threads
-        final int numThreads = 10;
-        Thread[] dataHandlerThreads = new Thread[numThreads];
-        AtomicBoolean running = new AtomicBoolean(true);
-
-        for (int i = 0; i < numThreads; i++) {
-            dataHandlerThreads[i] = new Thread(new DataHandler(stockObservable, running), "DataHandler-" + i);
-            dataHandlerThreads[i].start();
+        for (int i = 0; i < 5; i++) {
+            Thread thread = new Thread(() -> {
+                Observer<StockEvent> lineChartObserver = new LineChartObserver();
+                observable.addObserver(lineChartObserver);
+                try {
+                    Thread.sleep(1000); // Simulate some work
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                observable.removeObserver(lineChartObserver);
+            });
+            thread.start();
         }
 
-        Random random = new Random();
-        for (int i = 0; i < 20; i++) {
-            String ticker = "ticket1";
-            double quote = 100.0 + random.nextDouble() * 10;
-            stockObservable.changeQuote(ticker, quote);
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        for (int i = 0; i < 5; i++) {
+            Thread thread = new Thread(() -> {
+                Observer<StockEvent> tableObserver = new TableObserver();
+                observable.addObserver(tableObserver);
+                try {
+                    Thread.sleep(1000); // Simulate some work
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                observable.removeObserver(tableObserver);
+            });
+            thread.start();
         }
 
-        running.set(false);
-        for (Thread thread : dataHandlerThreads) {
-            thread.interrupt();
-        }
+        observable.changeQuote("ticket1", 150.0);
+        observable.changeQuote("ticket2", 2800.0);
+
+        // Terminate data handler threads
+        observable.terminateThreads();
     }
 }

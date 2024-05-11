@@ -6,6 +6,7 @@ class Taxi implements Runnable {
     private String location;
     private String dest;
     private Dispatcher dispatcher;
+    private boolean terminated = false;
     private ReentrantLock lockT = new ReentrantLock();
 
     public Taxi(Dispatcher dispatcher) {
@@ -32,10 +33,24 @@ class Taxi implements Runnable {
             lockT.unlock();
         }
 
-        dispatcher.notifyAvailable(this); // Notify dispatcher
+        dispatcher.notifyAvailable(this);
     }
 
-    public void run(){
+    public void terminate() {
+        terminated = true;
+    }
 
+    public void run() {
+        while (!terminated) {
+            // Perform taxi tasks here
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                System.out.println(Thread.currentThread().getName() + " interrupted.");
+                return;
+            }
+        }
+        System.out.println(Thread.currentThread().getName() + " terminated.");
     }
 }

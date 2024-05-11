@@ -8,11 +8,14 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Observable<T> {
     private final Lock lockObs = new ReentrantLock();
     private final List<Observer<T>> observers = new ArrayList<>();
+    private boolean isTerminated = false;
 
     public void addObserver(Observer<T> observer) {
         lockObs.lock();
         try {
-            observers.add(observer);
+            if (!isTerminated) {
+                observers.add(observer);
+            }
         } finally {
             lockObs.unlock();
         }
@@ -28,13 +31,17 @@ public class Observable<T> {
     }
 
     public void notifyObservers(T event) {
+        List<Observer<T>> snapshot;
         lockObs.lock();
         try {
-            for (Observer<T> observer : observers) {
-                observer.update(this, event);
-            }
+            if (isTerminated) return;
+            snapshot = new ArrayList<>(observers);
         } finally {
             lockObs.unlock();
+        }
+
+        for (Observer<T> observer : snapshot) {
+            observer.update(this, event);
         }
     }
 
@@ -42,15 +49,6 @@ public class Observable<T> {
         lockObs.lock();
         try {
             return observers.size();
-        } finally {
-            lockObs.unlock();
-        }
-    }
-
-    public List<Observer<T>> getObservers() {
-        lockObs.lock();
-        try {
-            return new ArrayList<>(observers);
         } finally {
             lockObs.unlock();
         }
@@ -65,7 +63,22 @@ public class Observable<T> {
         }
     }
 
-    public void terminateThreads() {
-        Thread.currentThread().interrupt();
+    public void terminate() {
+        lockObs.lock();
+        try {
+            isTerminated = true;
+            clearObservers();
+        } finally {
+            lockObs.unlock();
+        }
+    }
+
+    public void join() throws InterruptedException {
+        // Wait for all threads to complete
+        for (Observer<T> observer : observers) {
+            if (observer instanceof Thread) {
+                ((Thread) observer).join();
+            }
+        }
     }
 }

@@ -8,13 +8,15 @@ public class WithdrawRunnable implements Runnable {
     }
 
     public void run() {
-        while (!bankAccount.isDone()) {
-            bankAccount.withdraw(100);
-            try {
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                bankAccount.withdraw(100);
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                break;
             }
+        } catch (InterruptedException e) {
+            System.out.println(Thread.currentThread().getId() + " (withdraw): Interrupted");
+        } finally {
+            System.out.println(Thread.currentThread().getId() + " (withdraw): Terminating");
         }
     }
 }

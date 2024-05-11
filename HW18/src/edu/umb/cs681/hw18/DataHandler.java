@@ -18,6 +18,8 @@ class DataHandler implements Runnable {
             stockObservable.addObserver(new LineChartObserver());
             stockObservable.addObserver(new ThreeDObserver());
 
+            System.out.println(Thread.currentThread().getName() + " added observers.");
+
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
